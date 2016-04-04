@@ -10,7 +10,6 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-import java.util.concurrent.ThreadLocalRandom;
 
 /*
 
@@ -52,16 +51,17 @@ public class GepiJatekos {
         debug(words.toString());
 
         Socket s = new Socket("localhost", PORT);
-
+        System.out.println("Socket init");
         pw = new PrintWriter(s.getOutputStream(), true);
         sc = new Scanner(s.getInputStream());
-
+        
+        pw.println(name);
+        pw.flush();
+        System.out.println("Nev elkuldve");
         while (true) {
-            if (process() == 0) {
-                s.close();
-                break;
-            }
+            if (process() == 0) break;
         }
+        //s.close();
     }
 
     public static int process() {
