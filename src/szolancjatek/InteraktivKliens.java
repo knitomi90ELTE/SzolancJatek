@@ -1,5 +1,12 @@
 package szolancjatek;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
 /*
 Interaktív kliens
 Készíts egy konzolos klienst! A kliens csatlakozzon a játékszervehez, majd kérjen be a felhasználótól egy játékos nevet, amit elküld a szervernek.
@@ -19,5 +26,66 @@ A szólánc helyességén kívül a kliensprogram ellenőrizze minden lépésben
 
  */
 public class InteraktivKliens {
+
+    public static String name;
+    public static int PORT = 32123;
+    public static boolean debug = true;
+    public static PrintWriter pw;
+    public static Scanner serverOutput;
+    public static Scanner userInput;
+    public static List<String> words;
+
+    public static void main(String[] args) throws IOException {
+
+        words = new ArrayList<>();
+        Socket s = new Socket("localhost", PORT);
+        System.out.println("InteraktivKliens init");
+        
+        pw = new PrintWriter(s.getOutputStream(), true);
+        serverOutput = new Scanner(s.getInputStream());
+        userInput = new Scanner(System.in);
+        System.out.println("Adja meg a nevet");
+        
+        InteraktivKliens.name = userInput.nextLine();
+        
+        System.out.println("Nev beolvasva " + InteraktivKliens.name);
+        pw.println(name);
+        pw.flush();
+        
+        System.out.println("Nev elkuldve");
+        while (true) {
+            if (process() == 0) {
+                break;
+            }
+        }
+        //s.close();
+    }
+
+        public static int process() {
+        int status = 1;
+        String fromServer = serverOutput.nextLine();
+        debug("From server: " + fromServer);
+        switch (fromServer) {
+            case "nyert":
+                System.out.println(name + " nyert");
+                status = 0;
+                break;
+            case "looser":
+                status = 0;
+                break;
+            default:
+                String input = userInput.nextLine();
+                pw.println(input);
+                pw.flush();
+                break;
+        }
+        return status;
+    }
     
+    public static void debug(String s) {
+        if (debug) {
+            System.out.println(s);
+        }
+    }
+
 }

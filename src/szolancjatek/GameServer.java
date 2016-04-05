@@ -2,7 +2,6 @@ package szolancjatek;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -23,7 +22,7 @@ Várakozik két játékos csatlakozására, akik a csatlakozás után megküldik
 OK
 
 A szerver létrehoz egy fájlt, amibe játékmenet során összeálló szóláncot fogja rögzíteni, a következő névvel: <jatekos1>_<jatekos2>_<idobelyeg>.txt
-
+OK
 
 Amint a második játékos is csatlakozott, egy speciális start üzenettel jelzi az először csatlakozottnak, hogy ő a kezdőjátékos, 
 tehát először neki kell egy tetszőleges szót mondania.
@@ -31,9 +30,11 @@ OK
 
 A szerver innentől kezdve mindig fogad egy egy szavas üzenetet az egyik játékostól, majd (ellenőrzés nélkül) továbbítja a másik játékos felé, 
 aki válaszként elküldi a szólánc következő elemét, amit a szerver továbbít, stb.
+OK
 
 A szerver rögzíti a játék során összeálló szóláncot a játékmenethez létrehozott fájlba. Egy sorban a beküldő játékos neve, 
 majd attól szóközzel elválasztva az általa beküldött szó szerepeljen.
+OK
 
 Ha valamelyik játékos az exit üzenetet küldi (ez a szóláncban tiltott szó lesz), vagy váratlanul lecsatlakozik, a játékmenet véget ér, és a másik játékos nyert. 
 A nyertest a szerver a nyert üzenettel értesítse, majd mindkét játékossal bontsa a kapcsolatot.
@@ -42,6 +43,7 @@ OK
 A szervert készítsük fel több játékmenet egy időben történő kezelésére: tehát minden két, egymás után csatlakozott játékoshoz indítson el egy játékmenetet, 
 majd azonnal legyen képes újabb két játékos fogadására. A szerver álljon le, ha 30 másodpercen keresztül nem csatlakozik egy játékos sem 
 (tipp: ServerSocket osztály setSoTimout metódusa), és már nincsen folyamatban lévő játék.
+OK
  */
 public class GameServer {
 
@@ -60,10 +62,9 @@ public class GameServer {
                 new Handler(s1, s2).start();
             }
         } catch (SocketTimeoutException e) {
-            System.out.println("Server leall, nem tortent kapcsolatfelveltel " + TIMEOUT / 1000 + " masodpercig");
+            System.out.println("Szerver leall, nem tortent kapcsolatfelveltel " + TIMEOUT / 1000 + " masodpercig");
             ss.close();
         }
-
     }
 
     private static class Handler extends Thread {
@@ -76,7 +77,9 @@ public class GameServer {
         public Handler(Socket s1, Socket s2) throws IOException {
             this.player1 = new Player(s1);
             this.player2 = new Player(s2);
-            this.logFile = new File(player1.name + "_" + player2.name + "_" + getTimeStamp());
+            String s = player1.name + "_" + player2.name + "_" + getTimeStamp() + ".txt";
+            System.out.println(getTimeStamp());
+            this.logFile = new File(s);
             logFile.createNewFile();
             logWriter = new FileWriter(logFile);
             System.out.println("Handler created");
@@ -84,7 +87,7 @@ public class GameServer {
 
         private String getTimeStamp() {
             Date date = new Date();
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd h:mm:ss");
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd h-mm-ss");
             String formattedDate = sdf.format(date);
             return formattedDate;
         }
@@ -94,7 +97,6 @@ public class GameServer {
             bw.write(log);
             bw.newLine();
             bw.flush();
-            bw.close();
         }
 
         @Override
@@ -105,20 +107,20 @@ public class GameServer {
                 while (true) {
                     String s = playerOnTurn.getMessage();
                     synchronized (GameServer.class) {
-                        System.out.println("A beolvasott ertek: " + s);
+                        System.out.println(playerOnTurn.name + " kuldte: " + s);
+
+                        if (s.equals("exit")) {
+                            playerOnTurn.sendMessage("looser");
+                            playerOnTurn = (playerOnTurn.equals(player1)) ? player2 : player1;
+                            playerOnTurn.sendMessage("nyert");
+                            break;
+                        }
                         logToFile(playerOnTurn.name + " " + s);
                         playerOnTurn = (playerOnTurn.equals(player1)) ? player2 : player1;
                         playerOnTurn.sendMessage(s);
                         System.out.println("A kuldott ertek: " + s);
                     }
-                    if (s.equals("exit")) {
-                        playerOnTurn.sendMessage("looser");
-                        playerOnTurn = (playerOnTurn.equals(player1)) ? player2 : player1;
-                        playerOnTurn.sendMessage("nyert");
-                        break;
-                    }
                 }
-
                 player1.closeConnection();
                 player2.closeConnection();
             } catch (Exception e) {
@@ -131,7 +133,7 @@ public class GameServer {
     private static class Player {
 
         private final Socket socket;
-        private final String name;
+        public final String name;
         private final PrintWriter pw;
         private final Scanner sc;
 
