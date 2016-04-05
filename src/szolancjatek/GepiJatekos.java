@@ -16,17 +16,22 @@ import java.util.Scanner;
 Készítsünk egy főosztályt a gépi játékosoknak. A program első parancssori argumentuma a játékos neve, második pedig egy fájlnév. 
 Ebben a szöveges fájlban található a játékos szókincse: soronként egy-egy szó. Csatlakozzon a gépi játékos a szerverhez és küldje el a nevét. 
 A szervertől kapott első üzenetben vagy a kezdőjátékosnak szóló speciális start szó lesz, vagy pedig a szólánc első szava.
+OK
 
 Amennyiben a start üzenet érkezett, a gépi játékos válassza ki és küldje el a szókincse legelső szavát (a szavak sorrendje az a sorrend, ahogyan a fájlban szerepeltek).
+OK
 
 Ha már a szólánc első szava érkezett, akkor válassza ki és küldje el a szókincséből azt a legelső szót, ami a kapott szó utolsó betűjével kezdődik. 
 A többi lépésben is ugyanígy küldjön válaszüzenetet. Fontos, hogy egy szót egy játékmenet során csak egyszer küldhet el, 
 tehát a már elküldött szót érdemes eltávolítani a szókincsből! Minden elküldött szónál a standard outputra írja ki a következő szöveget: "<név>: <küldött_szó>"
+OK
 
 Ha a gépi játékosnak már nincs a leírt szabály szerint küldhető szava, küldje el az exit üzenetet a szervernek, majd fejezze be működését.
+OK
 
 Ha a gépi játékos még játékban van, és a nyerést jelző nyert üzenetet kapja, a standard outputra írja ki a következő szöveget: "<név> nyert", 
 majd fejezze be a működését.
+OK
 
  */
 public class GepiJatekos {
@@ -76,6 +81,9 @@ public class GepiJatekos {
                 System.out.println(name + " nyert");
                 status = 0;
                 break;
+            case "looser":
+                status = 0;
+                break;
             default:
                 int index = getFirstMatch(fromServer);
                 debug("match " + index);
@@ -107,7 +115,7 @@ public class GepiJatekos {
 
     public static void sendMessage(int index) {
         String m = words.get(index);
-        debug("Sending " + m);
+        debug(name + " " + m);
         pw.println(m);
         pw.flush();
         words.remove(index);
