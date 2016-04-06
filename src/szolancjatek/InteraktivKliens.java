@@ -7,8 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-;
-
 /*
 Interaktív kliens
 Készíts egy konzolos klienst! A kliens csatlakozzon a játékszervehez, majd kérjen be a felhasználótól egy játékos nevet, amit elküld a szervernek.
@@ -89,11 +87,9 @@ public class InteraktivKliens {
                 debug("USERCL-LOG: Irjon be egy szot!");
                 String input = userInput.nextLine();
                 if (!input.equals("exit") && !fromServer.equals("start")) {
-                    //if (isWrongInput(input, fromServer)) {
                         while (isWrongInput(input, fromServer)) {
                             input = userInput.nextLine();
                         }
-                    //}
                     words.add(input);
                 }
                 pw.println(input);
@@ -121,14 +117,7 @@ public class InteraktivKliens {
             System.out.println("nem csupa betu");
             b = true;
         }
-        /*
-        if(input.contains(" ") || input.contains("\t")){
-            System.out.println("nem egy szo");
-            b = true;
-        }
-        */
         return b;
-        //return (words.contains(input)) || (fromServer.charAt(fromServer.length() - 1) != input.charAt(0)) || (input.chars().allMatch(x -> Character.isLetter(x)));
     }
 
     private void debug(String s) {

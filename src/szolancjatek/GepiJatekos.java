@@ -41,36 +41,8 @@ public class GepiJatekos {
     private final boolean DEBUG = false;
     private PrintWriter pw;
     private Scanner sc;
-    private volatile boolean exit = false;
     private final int PORT = 32123;
 
-    /*
-    public static void main(String[] args) throws IOException {
-
-        if (args.length != 2) {
-            System.out.println("Nem megfelelo szamu parameter");
-            return;
-        }
-        GepiJatekos.name = args[0];
-        debug(name);
-
-        words = readFile(args[1]);
-        debug(words.toString());
-
-        Socket s = new Socket("localhost", PORT);
-        System.out.println("Socket init");
-        pw = new PrintWriter(s.getOutputStream(), true);
-        sc = new Scanner(s.getInputStream());
-        
-        pw.println(name);
-        pw.flush();
-        System.out.println("Nev elkuldve");
-        while (true) {
-            if (process() == 0) break;
-        }
-        //s.close();
-    }
-     */
     public GepiJatekos(String name, String file) {
         try {
             this.name = name;
