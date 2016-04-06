@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+;
+
 /*
 Interaktív kliens
 Készíts egy konzolos klienst! A kliens csatlakozzon a játékszervehez, majd kérjen be a felhasználótól egy játékos nevet, amit elküld a szervernek.
@@ -31,75 +33,112 @@ A szólánc helyességén kívül a kliensprogram ellenőrizze minden lépésben
  */
 public class InteraktivKliens {
 
-    private static String name;
-    private static final int PORT = 32123;
-    private static final boolean debug = true;
-    private static PrintWriter pw;
-    private static Scanner serverOutput;
-    private static Scanner userInput;
-    private static List<String> words;
+    private String name;
+    private final int PORT = 32123;
+    private final boolean debug = false;
+    private PrintWriter pw;
+    private Scanner serverOutput;
+    private Scanner userInput;
+    private List<String> words;
 
-    public static void main(String[] args) throws IOException {
+    public InteraktivKliens() {
+        try {
+            words = new ArrayList<>();
+            Socket s = new Socket("localhost", PORT);
+            //System.out.println("InteraktivKliens init");
 
-        words = new ArrayList<>();
-        Socket s = new Socket("localhost", PORT);
-        System.out.println("InteraktivKliens init");
+            pw = new PrintWriter(s.getOutputStream(), true);
+            serverOutput = new Scanner(s.getInputStream());
+            userInput = new Scanner(System.in);
 
-        pw = new PrintWriter(s.getOutputStream(), true);
-        serverOutput = new Scanner(s.getInputStream());
-        userInput = new Scanner(System.in);
+            System.out.println("USERCL-LOG: Adja meg a nevet");
+            this.name = userInput.nextLine();
 
-        System.out.println("Adja meg a nevet");
-        InteraktivKliens.name = userInput.nextLine();
-
-        System.out.println("Nev beolvasva " + InteraktivKliens.name);
-        pw.println(name);
-        pw.flush();
-
-        System.out.println("Nev elkuldve");
-        while (true) {
-            if (process() == 0) {
-                break;
-            }
+            //System.out.println("Nev beolvasva " + this.name);
+            pw.println(name);
+            pw.flush();
+        } catch (IOException ex) {
+            //System.out.println("GepiJatekos init hiba");
         }
-        //s.close();
+
+        new Thread() {
+            @Override
+            public void run() {
+                while (true) {
+                    if (process() == 0) {
+                        break;
+                    }
+                }
+            }
+        }.start();
     }
 
-    private static int process() {
+    private int process() {
         int status = 1;
         String fromServer = serverOutput.nextLine();
-        debug("From server: " + fromServer);
+        System.out.println("USERCL-LOG: " + fromServer);
         switch (fromServer) {
             case "nyert":
-                System.out.println(name + " nyert");
+                System.out.println("USERCL-LOG: " + name + " nyert");
                 status = 0;
                 break;
             case "looser":
                 status = 0;
                 break;
             default:
+                debug("USERCL-LOG: Irjon be egy szot!");
                 String input = userInput.nextLine();
-                if (!input.equals("exit")) {
-                    while (validInput(input, fromServer)) {
-                        input = userInput.nextLine();
-                    }
+                if (!input.equals("exit") && !fromServer.equals("start")) {
+                    //if (isWrongInput(input, fromServer)) {
+                        while (isWrongInput(input, fromServer)) {
+                            input = userInput.nextLine();
+                        }
+                    //}
                     words.add(input);
                 }
                 pw.println(input);
                 pw.flush();
+                debug("USERCL-LOG: Szo elkuldve, varakozas...");
                 break;
+
         }
         return status;
     }
 
-    private static boolean validInput(String input, String fromServer) {
-        return words.contains(input) || fromServer.charAt(fromServer.length() - 1) != input.charAt(0);
+    private boolean isWrongInput(String input, String fromServer) {
+        boolean b = false;
+        if(words.contains(input)){
+            System.out.println("mar mondtad");
+            b = true;
+        }
+        
+        if(fromServer.charAt(fromServer.length() - 1) != input.charAt(0)){
+            System.out.println("nem stimmel a karakter");
+            b = true;
+        }
+        
+        if(!input.chars().allMatch(x -> Character.isLetter(x))){
+            System.out.println("nem csupa betu");
+            b = true;
+        }
+        /*
+        if(input.contains(" ") || input.contains("\t")){
+            System.out.println("nem egy szo");
+            b = true;
+        }
+        */
+        return b;
+        //return (words.contains(input)) || (fromServer.charAt(fromServer.length() - 1) != input.charAt(0)) || (input.chars().allMatch(x -> Character.isLetter(x)));
     }
 
-    private static void debug(String s) {
+    private void debug(String s) {
         if (debug) {
             System.out.println(s);
         }
+    }
+
+    public static void main(String[] args) {
+        new InteraktivKliens();
     }
 
 }

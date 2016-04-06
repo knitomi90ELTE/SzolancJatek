@@ -36,13 +36,15 @@ OK
  */
 public class GepiJatekos {
 
-    private static String name;
-    private static final int PORT = 32123;
-    private static List<String> words;
-    private static final boolean DEBUG = true;
-    private static PrintWriter pw;
-    private static Scanner sc;
+    private String name;
+    private List<String> words;
+    private final boolean DEBUG = false;
+    private PrintWriter pw;
+    private Scanner sc;
+    private volatile boolean exit = false;
+    private final int PORT = 32123;
 
+    /*
     public static void main(String[] args) throws IOException {
 
         if (args.length != 2) {
@@ -68,8 +70,38 @@ public class GepiJatekos {
         }
         //s.close();
     }
+     */
+    public GepiJatekos(String name, String file) {
+        try {
+            this.name = name;
+            debug(name);
+            words = readFile(file);
+            debug(words.toString());
 
-    public static int process() {
+            Socket client = new Socket("localhost", PORT);
+            pw = new PrintWriter(client.getOutputStream(), true);
+            sc = new Scanner(client.getInputStream());
+
+            pw.println(name);
+            pw.flush();
+            System.out.println("Nev elkuldve");
+        } catch (Exception e) {
+            System.out.println("GepiJatekos init hiba");
+        }
+
+        new Thread() {
+            @Override
+            public void run() {
+                while (true) {
+                    if (process() == 0) {
+                        break;
+                    }
+                }
+            }
+        }.start();
+    }
+
+    public int process() {
         int status = 1;
         String fromServer = sc.nextLine();
         debug("From server: " + fromServer);
@@ -100,7 +132,7 @@ public class GepiJatekos {
         return status;
     }
 
-    public static int getFirstMatch(String input) {
+    public int getFirstMatch(String input) {
         int index = -1;
         String last = input.substring(input.length() - 1);
         for (int i = 0; i < words.size(); i++) {
@@ -113,7 +145,7 @@ public class GepiJatekos {
         return index;
     }
 
-    public static void sendMessage(int index) {
+    public void sendMessage(int index) {
         String m = words.get(index);
         debug(name + " " + m);
         pw.println(m);
@@ -136,10 +168,18 @@ public class GepiJatekos {
         return ls;
     }
 
-    public static void debug(String s) {
+    public void debug(String s) {
         if (DEBUG) {
             System.out.println(s);
         }
+    }
+
+    public static void main(String[] args) {
+        if (args.length != 2) {
+            System.out.println("Nem megfelelo szamu parameter");
+            return;
+        }
+        new GepiJatekos(args[0], args[1]);
     }
 
 }

@@ -8,11 +8,11 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketTimeoutException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Objects;
 import java.util.Scanner;
+
 
 /*
 A játékszervert a 32123 porthoz rendeljük. A szerver egy játékmenetet a következőképpen bonyolít le:
@@ -47,23 +47,32 @@ OK
  */
 public class GameServer {
 
-    public static final int PORT = 32123;
-    public static int state = 0;
+    public int port;
     public static final int TIMEOUT = 30000;
 
-    public static void main(String[] args) throws IOException {
-        ServerSocket ss = new ServerSocket(PORT);
-        System.out.println("Server listening on port " + PORT);
-        ss.setSoTimeout(TIMEOUT);
-        try {
-            while (true) {
-                Socket s1 = ss.accept();
-                Socket s2 = ss.accept();
+    private ServerSocket server;
+
+    public void handleClients() {
+        while (true) {
+            try {
+                Socket s1 = server.accept();
+                Socket s2 =  server.accept();
                 new Handler(s1, s2).start();
+            } catch (IOException e) {
+                System.out.println("SERVER-LOG: Hiba a kliensek fogadasakor vagy timeout.");
+                break;
             }
-        } catch (SocketTimeoutException e) {
-            System.out.println("Szerver leall, nem tortent kapcsolatfelveltel " + TIMEOUT / 1000 + " masodpercig");
-            ss.close();
+        }
+    }
+
+    public GameServer(int port) {
+        this.port = port;
+        try {
+            server = new ServerSocket(port);
+            server.setSoTimeout(TIMEOUT);
+            System.out.println("SERVER-LOG: A szerver elindult a " + port + " porton");
+        } catch (Exception e) {
+            System.out.println("SERVER-LOG: Hiba a szerver inditasanal.");
         }
     }
 
@@ -78,11 +87,11 @@ public class GameServer {
             this.player1 = new Player(s1);
             this.player2 = new Player(s2);
             String s = player1.name + "_" + player2.name + "_" + getTimeStamp() + ".txt";
-            System.out.println(getTimeStamp());
+            //System.out.println(getTimeStamp());
             this.logFile = new File(s);
             logFile.createNewFile();
             logWriter = new FileWriter(logFile);
-            System.out.println("Handler created");
+            //System.out.println("Handler created");
         }
 
         private String getTimeStamp() {
@@ -107,23 +116,23 @@ public class GameServer {
                 while (true) {
                     String s = playerOnTurn.getMessage();
                     synchronized (GameServer.class) {
-                        System.out.println(playerOnTurn.name + " kuldte: " + s);
+                        System.out.println("SERVER-LOG: " + playerOnTurn.name + " kuldte: " + s);
                         if (s.equals("exit")) {
                             playerOnTurn.sendMessage("looser");
                             playerOnTurn = (playerOnTurn.equals(player1)) ? player2 : player1;
-                            playerOnTurn.sendMessage("nyert");                            
+                            playerOnTurn.sendMessage("nyert");
                             break;
                         }
                         logToFile(playerOnTurn.name + " " + s);
                         playerOnTurn = (playerOnTurn.equals(player1)) ? player2 : player1;
                         playerOnTurn.sendMessage(s);
-                        System.out.println("A kuldott ertek: " + s);
+                        System.out.println("SERVER-LOG: A kuldott ertek: " + s);
                     }
                 }
                 player1.closeConnection();
                 player2.closeConnection();
             } catch (Exception e) {
-                System.err.println("Hiba a klienessel valo kommunikacioban.");
+                System.out.println("SERVER-LOG: Hiba a klienessel valo kommunikacioban.");             
             }
         }
 
@@ -141,7 +150,7 @@ public class GameServer {
             pw = new PrintWriter(socket.getOutputStream(), true);
             sc = new Scanner(socket.getInputStream());
             this.name = sc.nextLine();
-            System.out.println("Player created");
+            //System.out.println("Player created");
         }
 
         public void sendMessage(String s) {
@@ -193,6 +202,13 @@ public class GameServer {
             return true;
         }
 
+    }
+
+    public static void main(String[] args) {
+        GameServer server = new GameServer(32123);
+        if (server != null) {
+            server.handleClients();
+        }
     }
 
 }
