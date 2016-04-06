@@ -108,11 +108,10 @@ public class GameServer {
                     String s = playerOnTurn.getMessage();
                     synchronized (GameServer.class) {
                         System.out.println(playerOnTurn.name + " kuldte: " + s);
-
                         if (s.equals("exit")) {
                             playerOnTurn.sendMessage("looser");
                             playerOnTurn = (playerOnTurn.equals(player1)) ? player2 : player1;
-                            playerOnTurn.sendMessage("nyert");
+                            playerOnTurn.sendMessage("nyert");                            
                             break;
                         }
                         logToFile(playerOnTurn.name + " " + s);
@@ -133,7 +132,7 @@ public class GameServer {
     private static class Player {
 
         private final Socket socket;
-        public final String name;
+        private final String name;
         private final PrintWriter pw;
         private final Scanner sc;
 
@@ -147,7 +146,6 @@ public class GameServer {
 
         public void sendMessage(String s) {
             pw.println(s);
-
         }
 
         public String getMessage() {

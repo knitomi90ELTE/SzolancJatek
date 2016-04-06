@@ -10,10 +10,14 @@ import java.util.Scanner;
 /*
 Interaktív kliens
 Készíts egy konzolos klienst! A kliens csatlakozzon a játékszervehez, majd kérjen be a felhasználótól egy játékos nevet, amit elküld a szervernek.
+OK
 
 Amennyiben a start üzenet érkezett elsőként a szervertől, kérjen be egy tetszőleges szót a felhasználótól, amit továbbít a szerver felé.
+OK
 
 Ha már a szólánc első szava érkezett, írja ki a kapott szót a felhasználónak, és kérje be a szólánc következő elemét. 
+OK
+
 A kliensprogram ellenőrizze, hogy tényleg a kapott szó utolsó betűjével kezdődő szót gépelt-e be a felhasználó, ha nem, kérjen be egy újabb szót. 
 Ha rendben van a begépelt szó, továbbítsa a szerver felé.
 
@@ -27,31 +31,31 @@ A szólánc helyességén kívül a kliensprogram ellenőrizze minden lépésben
  */
 public class InteraktivKliens {
 
-    public static String name;
-    public static int PORT = 32123;
-    public static boolean debug = true;
-    public static PrintWriter pw;
-    public static Scanner serverOutput;
-    public static Scanner userInput;
-    public static List<String> words;
+    private static String name;
+    private static final int PORT = 32123;
+    private static final boolean debug = true;
+    private static PrintWriter pw;
+    private static Scanner serverOutput;
+    private static Scanner userInput;
+    private static List<String> words;
 
     public static void main(String[] args) throws IOException {
 
         words = new ArrayList<>();
         Socket s = new Socket("localhost", PORT);
         System.out.println("InteraktivKliens init");
-        
+
         pw = new PrintWriter(s.getOutputStream(), true);
         serverOutput = new Scanner(s.getInputStream());
         userInput = new Scanner(System.in);
+
         System.out.println("Adja meg a nevet");
-        
         InteraktivKliens.name = userInput.nextLine();
-        
+
         System.out.println("Nev beolvasva " + InteraktivKliens.name);
         pw.println(name);
         pw.flush();
-        
+
         System.out.println("Nev elkuldve");
         while (true) {
             if (process() == 0) {
@@ -61,7 +65,7 @@ public class InteraktivKliens {
         //s.close();
     }
 
-        public static int process() {
+    private static int process() {
         int status = 1;
         String fromServer = serverOutput.nextLine();
         debug("From server: " + fromServer);
@@ -75,14 +79,24 @@ public class InteraktivKliens {
                 break;
             default:
                 String input = userInput.nextLine();
+                if (!input.equals("exit")) {
+                    while (validInput(input, fromServer)) {
+                        input = userInput.nextLine();
+                    }
+                    words.add(input);
+                }
                 pw.println(input);
                 pw.flush();
                 break;
         }
         return status;
     }
-    
-    public static void debug(String s) {
+
+    private static boolean validInput(String input, String fromServer) {
+        return words.contains(input) || fromServer.charAt(fromServer.length() - 1) != input.charAt(0);
+    }
+
+    private static void debug(String s) {
         if (debug) {
             System.out.println(s);
         }

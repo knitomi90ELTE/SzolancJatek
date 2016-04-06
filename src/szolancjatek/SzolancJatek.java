@@ -9,7 +9,7 @@ vagy a felhasználó feladja a játékot.
 */
 
 public class SzolancJatek {
-
+    
     public static void main(String[] args) {
         
     }

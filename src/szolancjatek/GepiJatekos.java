@@ -36,12 +36,12 @@ OK
  */
 public class GepiJatekos {
 
-    public static String name;
-    public static int PORT = 32123;
-    public static List<String> words;
-    public static boolean debug = true;
-    public static PrintWriter pw;
-    public static Scanner sc;
+    private static String name;
+    private static final int PORT = 32123;
+    private static List<String> words;
+    private static final boolean DEBUG = true;
+    private static PrintWriter pw;
+    private static Scanner sc;
 
     public static void main(String[] args) throws IOException {
 
@@ -137,7 +137,7 @@ public class GepiJatekos {
     }
 
     public static void debug(String s) {
-        if (debug) {
+        if (DEBUG) {
             System.out.println(s);
         }
     }
