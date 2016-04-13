@@ -125,7 +125,7 @@ public class GepiJatekos {
         words.remove(index);
     }
 
-    public static List<String> readFile(String filename) throws IOException {
+    public List<String> readFile(String filename) throws IOException {
         List<String> ls = new ArrayList<>();
         try (Reader reader = new FileReader(filename)) {
             BufferedReader br = new BufferedReader(reader);

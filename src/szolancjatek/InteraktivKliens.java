@@ -42,19 +42,14 @@ public class InteraktivKliens {
     public InteraktivKliens() {
         try {
             words = new ArrayList<>();
+            //Socket s = new Socket("84.236.115.29", PORT);
             Socket s = new Socket("localhost", PORT);
-            //System.out.println("InteraktivKliens init");
-
             pw = new PrintWriter(s.getOutputStream(), true);
             serverOutput = new Scanner(s.getInputStream());
             userInput = new Scanner(System.in);
-
             System.out.println("USERCL-LOG: Adja meg a nevet");
             this.name = userInput.nextLine();
-
-            //System.out.println("Nev beolvasva " + this.name);
             pw.println(name);
-            pw.flush();
         } catch (IOException ex) {
             //System.out.println("GepiJatekos init hiba");
         }
@@ -87,33 +82,39 @@ public class InteraktivKliens {
                 debug("USERCL-LOG: Irjon be egy szot!");
                 String input = userInput.nextLine();
                 if (!input.equals("exit") && !fromServer.equals("start")) {
-                        while (isWrongInput(input, fromServer)) {
-                            input = userInput.nextLine();
+                    //TODO: exit validálása nem első inputként
+                    while (isWrongInput(input, fromServer)) {
+                        input = userInput.nextLine();
+                        if("exit".equals(input)){
+                            break;
                         }
+                    }
                     words.add(input);
                 }
                 pw.println(input);
-                pw.flush();
                 debug("USERCL-LOG: Szo elkuldve, varakozas...");
                 break;
-
         }
         return status;
     }
 
     private boolean isWrongInput(String input, String fromServer) {
         boolean b = false;
-        if(words.contains(input)){
+        if(input.length() == 0){
+            System.out.println("ures szo");
+            b = true;
+        }
+        if (words.contains(input)) {
             System.out.println("mar mondtad");
             b = true;
         }
-        
-        if(fromServer.charAt(fromServer.length() - 1) != input.charAt(0)){
+
+        if (fromServer.charAt(fromServer.length() - 1) != input.charAt(0)) {
             System.out.println("nem stimmel a karakter");
             b = true;
         }
-        
-        if(!input.chars().allMatch(x -> Character.isLetter(x))){
+
+        if (!input.chars().allMatch(x -> Character.isLetter(x))) {
             System.out.println("nem csupa betu");
             b = true;
         }

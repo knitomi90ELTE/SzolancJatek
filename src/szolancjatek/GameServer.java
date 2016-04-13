@@ -49,21 +49,7 @@ public class GameServer {
 
     public int port;
     public static final int TIMEOUT = 30000;
-
     private ServerSocket server;
-
-    public void handleClients() {
-        while (true) {
-            try {
-                Socket s1 = server.accept();
-                Socket s2 =  server.accept();
-                new Handler(s1, s2).start();
-            } catch (IOException e) {
-                System.out.println("SERVER-LOG: Hiba a kliensek fogadasakor vagy timeout.");
-                break;
-            }
-        }
-    }
 
     public GameServer(int port) {
         this.port = port;
@@ -76,7 +62,20 @@ public class GameServer {
         }
     }
 
-    private static class Handler extends Thread {
+    public void handleClients() {
+        while (true) {
+            try {
+                Socket s1 = server.accept();
+                Socket s2 = server.accept();
+                new Handler(s1, s2).start();
+            } catch (IOException e) {
+                System.out.println("SERVER-LOG: Hiba a kliensek fogadasakor vagy timeout.");
+                break;
+            }
+        }
+    }
+
+    private class Handler extends Thread {
 
         private final Player player1;
         private final Player player2;
@@ -87,11 +86,9 @@ public class GameServer {
             this.player1 = new Player(s1);
             this.player2 = new Player(s2);
             String s = player1.name + "_" + player2.name + "_" + getTimeStamp() + ".txt";
-            //System.out.println(getTimeStamp());
             this.logFile = new File(s);
             logFile.createNewFile();
             logWriter = new FileWriter(logFile);
-            //System.out.println("Handler created");
         }
 
         private String getTimeStamp() {
@@ -115,30 +112,28 @@ public class GameServer {
                 playerOnTurn.sendMessage("start");
                 while (true) {
                     String s = playerOnTurn.getMessage();
-                    synchronized (GameServer.class) {
-                        System.out.println("SERVER-LOG: " + playerOnTurn.name + " kuldte: " + s);
-                        if (s.equals("exit")) {
-                            playerOnTurn.sendMessage("looser");
-                            playerOnTurn = (playerOnTurn.equals(player1)) ? player2 : player1;
-                            playerOnTurn.sendMessage("nyert");
-                            break;
-                        }
-                        logToFile(playerOnTurn.name + " " + s);
+                    System.out.println("SERVER-LOG: " + playerOnTurn.name + " kuldte: " + s);
+                    if (s.equals("exit")) {
+                        playerOnTurn.sendMessage("looser");
                         playerOnTurn = (playerOnTurn.equals(player1)) ? player2 : player1;
-                        playerOnTurn.sendMessage(s);
-                        System.out.println("SERVER-LOG: A kuldott ertek: " + s);
+                        playerOnTurn.sendMessage("nyert");
+                        break;
                     }
+                    logToFile(playerOnTurn.name + " " + s);
+                    playerOnTurn = (playerOnTurn.equals(player1)) ? player2 : player1;
+                    playerOnTurn.sendMessage(s);
+                    System.out.println("SERVER-LOG: A kuldott ertek: " + s);
                 }
                 player1.closeConnection();
                 player2.closeConnection();
             } catch (Exception e) {
-                System.out.println("SERVER-LOG: Hiba a klienessel valo kommunikacioban.");             
+                System.out.println("SERVER-LOG: Hiba a klienessel valo kommunikacioban.");
             }
         }
 
     }
 
-    private static class Player {
+    private class Player {
 
         private final Socket socket;
         private final String name;
@@ -150,7 +145,6 @@ public class GameServer {
             pw = new PrintWriter(socket.getOutputStream(), true);
             sc = new Scanner(socket.getInputStream());
             this.name = sc.nextLine();
-            //System.out.println("Player created");
         }
 
         public void sendMessage(String s) {
