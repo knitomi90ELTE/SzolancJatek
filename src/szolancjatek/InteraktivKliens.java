@@ -33,7 +33,7 @@ public class InteraktivKliens {
 
     private String name;
     private final int PORT = 32123;
-    private final boolean debug = false;
+    private final boolean debug = true;
     private PrintWriter pw;
     private Scanner serverOutput;
     private Scanner userInput;
@@ -43,20 +43,15 @@ public class InteraktivKliens {
         try {
             words = new ArrayList<>();
             Socket s = new Socket("localhost", PORT);
-            //System.out.println("InteraktivKliens init");
-
             pw = new PrintWriter(s.getOutputStream(), true);
             serverOutput = new Scanner(s.getInputStream());
             userInput = new Scanner(System.in);
-
-            System.out.println("USERCL-LOG: Adja meg a nevet");
+            debug("USERCL-LOG: Adja meg a nevet");
             this.name = userInput.nextLine();
-
-            //System.out.println("Nev beolvasva " + this.name);
             pw.println(name);
             pw.flush();
         } catch (IOException ex) {
-            //System.out.println("GepiJatekos init hiba");
+            System.out.println("InteraktivKliens init hiba");
         }
 
         new Thread() {
@@ -73,48 +68,52 @@ public class InteraktivKliens {
 
     private int process() {
         int status = 1;
-        String fromServer = serverOutput.nextLine();
-        System.out.println("USERCL-LOG: " + fromServer);
-        switch (fromServer) {
-            case "nyert":
-                System.out.println("USERCL-LOG: " + name + " nyert");
-                status = 0;
-                break;
-            case "looser":
-                status = 0;
-                break;
-            default:
-                debug("USERCL-LOG: Irjon be egy szot!");
-                String input = userInput.nextLine();
-                if (!input.equals("exit") && !fromServer.equals("start")) {
+        try {
+            String fromServer = serverOutput.nextLine();
+            System.out.println("USERCL-LOG: " + fromServer);
+            switch (fromServer) {
+                case "nyert":
+                    debug("USERCL-LOG: " + name + " nyert");
+                    status = 0;
+                    break;
+                case "looser":
+                    status = 0;
+                    break;
+                default:
+                    debug("USERCL-LOG: Irjon be egy szot!");
+                    String input = userInput.nextLine();
+                    if (!input.equals("exit") && !fromServer.equals("start")) {
                         while (isWrongInput(input, fromServer)) {
                             input = userInput.nextLine();
                         }
-                    words.add(input);
-                }
-                pw.println(input);
-                pw.flush();
-                debug("USERCL-LOG: Szo elkuldve, varakozas...");
-                break;
-
+                        words.add(input);
+                    }
+                    pw.println(input);
+                    pw.flush();
+                    debug("USERCL-LOG: Szo elkuldve, varakozas...");
+                    break;
+            }
+        } catch (Exception e) {
+            debug("USERCL-LOG: váratlan hiba.");
+            status = 0;
         }
         return status;
     }
 
     private boolean isWrongInput(String input, String fromServer) {
         boolean b = false;
-        if(words.contains(input)){
-            System.out.println("mar mondtad");
+        if (words.contains(input)) {
+            debug("mar mondtad");
             b = true;
         }
-        
-        if(fromServer.charAt(fromServer.length() - 1) != input.charAt(0)){
-            System.out.println("nem stimmel a karakter");
+
+        if (fromServer.charAt(fromServer.length() - 1) != input.charAt(0)) {
+            debug("nem stimmel a karakter");
             b = true;
         }
-        
-        if(!input.chars().allMatch(x -> Character.isLetter(x))){
-            System.out.println("nem csupa betu");
+
+        if (!input.chars().allMatch(x -> Character.isLetter(x))) {
+            debug("nem csupa betu");
             b = true;
         }
         return b;

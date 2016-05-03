@@ -56,9 +56,9 @@ public class GepiJatekos {
 
             pw.println(name);
             pw.flush();
-            System.out.println("Nev elkuldve");
+            debug("Nev elkuldve");
         } catch (Exception e) {
-            System.out.println("GepiJatekos init hiba");
+            debug("GepiJatekos init hiba");
         }
 
         new Thread() {
@@ -73,38 +73,43 @@ public class GepiJatekos {
         }.start();
     }
 
-    public int process() {
+    private int process() {
         int status = 1;
-        String fromServer = sc.nextLine();
-        debug("From server: " + fromServer);
-        switch (fromServer) {
-            case "start":
-                sendMessage(0);
-                break;
-            case "nyert":
-                System.out.println(name + " nyert");
-                status = 0;
-                break;
-            case "looser":
-                status = 0;
-                break;
-            default:
-                int index = getFirstMatch(fromServer);
-                debug("match " + index);
-                if (index != -1) {
-                    sendMessage(index);
-                } else {
-                    debug("No match, exiting...");
-                    pw.println("exit");
-                    pw.flush();
+        try {
+            String fromServer = sc.nextLine();
+            debug("From server: " + fromServer);
+            switch (fromServer) {
+                case "start":
+                    sendMessage(0);
+                    break;
+                case "nyert":
+                    debug(name + " nyert");
                     status = 0;
-                }
-                break;
+                    break;
+                case "looser":
+                    status = 0;
+                    break;
+                default:
+                    int index = getFirstMatch(fromServer);
+                    debug("match " + index);
+                    if (index != -1) {
+                        sendMessage(index);
+                    } else {
+                        debug("No match, exiting...");
+                        pw.println("exit");
+                        pw.flush();
+                        status = 0;
+                    }
+                    break;
+            }
+        } catch (Exception e) {
+            debug("váratlan hiba.");
+            status = 0;
         }
         return status;
     }
 
-    public int getFirstMatch(String input) {
+    private int getFirstMatch(String input) {
         int index = -1;
         String last = input.substring(input.length() - 1);
         for (int i = 0; i < words.size(); i++) {
@@ -117,7 +122,7 @@ public class GepiJatekos {
         return index;
     }
 
-    public void sendMessage(int index) {
+    private void sendMessage(int index) {
         String m = words.get(index);
         debug(name + " " + m);
         pw.println(m);
@@ -125,7 +130,7 @@ public class GepiJatekos {
         words.remove(index);
     }
 
-    public static List<String> readFile(String filename) throws IOException {
+    private static List<String> readFile(String filename) throws IOException {
         List<String> ls = new ArrayList<>();
         try (Reader reader = new FileReader(filename)) {
             BufferedReader br = new BufferedReader(reader);
@@ -140,9 +145,9 @@ public class GepiJatekos {
         return ls;
     }
 
-    public void debug(String s) {
+    private void debug(String s) {
         if (DEBUG) {
-            System.out.println(s);
+            debug(s);
         }
     }
 
