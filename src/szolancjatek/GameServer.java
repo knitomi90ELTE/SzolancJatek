@@ -75,7 +75,7 @@ public class GameServer {
         }
     }
 
-    private static class Handler extends Thread {
+    private class Handler extends Thread {
 
         private final Player player1;
         private final Player player2;
@@ -135,7 +135,7 @@ public class GameServer {
         }
     }
 
-    private static class Player {
+    private class Player {
 
         private final Socket socket;
         private final String name;

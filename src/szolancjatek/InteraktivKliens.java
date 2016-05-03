@@ -42,6 +42,7 @@ public class InteraktivKliens {
     public InteraktivKliens() {
         try {
             words = new ArrayList<>();
+            //Socket s = new Socket("84.236.115.29", PORT);
             Socket s = new Socket("localhost", PORT);
             pw = new PrintWriter(s.getOutputStream(), true);
             serverOutput = new Scanner(s.getInputStream());
@@ -49,7 +50,6 @@ public class InteraktivKliens {
             debug("USERCL-LOG: Adja meg a nevet");
             this.name = userInput.nextLine();
             pw.println(name);
-            pw.flush();
         } catch (IOException ex) {
             System.out.println("InteraktivKliens init hiba");
         }
